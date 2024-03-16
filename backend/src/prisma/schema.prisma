@@ -6,9 +6,213 @@
 
 generator client {
   provider = "prisma-client-js"
+  output = "../../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @unique @default(uuid()) @map("id")
+  name String
+  email String @unique 
+  avatarUri String @default("no-avatar.png") @map("avatar_uri")
+  passwordHash String @map("password_hash")
+  gender Gender @default(not_specified)
+  birthday DateTime
+  role Role @default(user)
+  description String
+  location MetroStation
+  backgroundUri String @default("default-background.png") @map("background_uri")
+  userRole UserRole?
+  coachRole CoachRole?
+  review Review[]
+  order Order[]
+  personalWorkoutAuthor PersonalWorkout[] @relation("PersonalWorkoutAuthor")
+  personalWorkoutPartner PersonalWorkout[] @relation("PersonalWorkoutPartner")
+  notify Notify[]
+  userBalance UserBalance?
+ 
+  @@map("users")
+}
+
+model UserRole {
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String @unique() @map("user_id")
+  skill Skill @default(newbie)
+  workoutType WorkoutType @map("workout_type")
+  workoutTime WorkoutTime @map("workout_time")
+  caloriesToBurn Int @map("calories_to_burn")
+  caloriesToSpend Int @map("calories_to_spend")
+  isReadyForWorkout Boolean @default(false) @map("is_ready_for_workout")
+
+  @@map("users_role")
+}
+
+model CoachRole {
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String @unique() @map("user_id")
+  skill Skill @default(professional)
+  workoutType WorkoutType @map("workout_type")
+  sertifikatUri String @map("sertifikat_uri")
+  merits String
+  isReadyToCoach Boolean @default(false) @map("is_ready_to_coach")
+  workouts Workout[]
+
+  @@map("coaches_role")
+}
+
+model Workout {
+  id String @unique() @default(uuid()) @map("id")
+  name String
+  backgroundUri String @default("default_background.png") @map("background_uri")
+  skill Skill
+  workoutType WorkoutType @map("workout_type")
+  workoutTime WorkoutTime @map("workout_time")
+  price Int
+  calories Int
+  description String
+  gender TargetGender @default(for_both)
+  videoUri String @map("video_uri")
+  rating Int
+  coach CoachRole @relation(fields: [coachId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  coachId String @map("coach_id")
+  isSpecialOffer Boolean @default(false) @map("is_special_offer")
+  review Review[]
+  order Order[]
+  purchasedWorkout PurchasedWorkout[]
+
+  @@map("workouts")
+}
+
+model Review {
+  id String @unique() @default(uuid()) @map("id")
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  authorId String @map("author_id")
+  workout Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  workoutId String @map("workout_id")
+  rating Int
+  description String
+  date DateTime @default(now())
+  
+  @@map("reviews")
+}
+
+model Order {
+  id String @unique() @default(uuid()) @map("id")
+  orderType String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String @map("user_id")
+  workout Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  workoutId String @map("workout_id")
+  pricePerWorkout Int @map("price_per_workout")
+  fullPrice Int @map("full_price")
+  paymentMethod PaymentMethod @map("payment_method")
+
+  @@map("orders")
+}
+
+model PersonalWorkout {
+  id String @unique() @default(uuid()) @map("id")
+  author User @relation("PersonalWorkoutAuthor", fields: [authorId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  authorId String @map("author_id")
+  partner User @relation("PersonalWorkoutPartner", fields: [partnerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  partnerId String @map("partner_id")
+  date DateTime @default(now())
+  updateDate DateTime @default(now()) @map("update_date")
+  status Status @default(for_consideration)
+
+  @@map("personal_workouts")
+}
+
+model Notify {
+  id String @unique() @default(uuid()) @map("id")
+  date DateTime
+  user User @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userId String @map("user_id")
+  text String
+
+  @@map("notifies")
+}
+
+model UserBalance {
+  id String @unique() @default(uuid()) 
+  user User @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userId String @unique() @map("user_id")
+  purchasedWorkouts PurchasedWorkout[]
+
+  @@map("users_balances")
+}
+
+model PurchasedWorkout {
+  workout Workout @relation(fields: [workoutId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  workoutId String @map("workout_id")
+  userBalance UserBalance @relation(fields: [balanceId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  balanceId String @unique() @map("balance_id")
+  num Int
+
+  @@map("purchased_workouts")
+}
+
+enum Status {
+  accepted
+  refected
+  for_consideration
+}
+
+enum PaymentMethod {
+  visa
+  mir
+  umoney
+}
+
+enum WorkoutTime {
+  extra_fast
+  fast
+  medium
+  long
+}
+
+enum TargetGender {
+  for_male
+  for_female
+  for_both
+}
+
+enum WorkoutType {
+  yoga
+  running
+  boxing
+  stretching
+  crossfit
+  aerobics
+  pilates
+}
+
+enum Skill {
+  newbie
+  average
+  professional
+}
+
+enum Gender {
+  male
+  female
+  not_specified
+}
+
+
+enum Role {
+  user
+  coach
+}
+
+enum MetroStation {
+  pionerskaya
+  petrogradskaya
+  udelnaya
+  zvezdnaya
+  sportivnaya
 }

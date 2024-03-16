@@ -4,7 +4,7 @@ export type User = {
   email: string;
   avatarUri: string;
   password: string;
-  sex: Gender;
+  gender: Gender;
   birthday: Date;
   role: UserRole | CoachRole;
   description: string;
@@ -15,6 +15,7 @@ export type User = {
 export enum Gender {
   Male = 'male',
   Female = 'female',
+  NotSpecified = 'not_specified'
 }
 
 export enum MetroStation {
@@ -31,7 +32,7 @@ export type UserRole = {
   workoutTime: WorkoutTime;
   caloriesToBurn: number;
   caloriesToSpend: number;
-  isReadyForworkout: boolean;
+  isReadyForWorkout: boolean;
 };
 
 export enum Skill {
@@ -51,10 +52,10 @@ export enum WorkoutType {
 }
 
 export enum WorkoutTime {
-  ExtraFast = '10-30',
-  Fast = '30-50',
-  Medium = '50-80',
-  Long = '80-100',
+  ExtraFast = 'extra_fast',
+  Fast = 'fast',
+  Medium = 'medium',
+  Long = 'long',
 }
 
 export type CoachRole = {
@@ -62,13 +63,13 @@ export type CoachRole = {
   workoutType: WorkoutType;
   sertifikatUri: string;
   merits: string;
-  isReadyToTrain: boolean;
+  isReadyToCoach: boolean;
 };
 
 export enum TargetGender {
-  ForMale = 'for male',
-  ForFemale = 'for female',
-  ForBoth = 'for both',
+  ForMale = 'for_male',
+  ForFemale = 'for_female',
+  ForBoth = 'for_both',
 }
 
 export type Workout = {
@@ -81,17 +82,17 @@ export type Workout = {
   price: number;
   calories: number;
   description: string;
-  sex: TargetGender;
+  gender: TargetGender;
   videoUri: string;
   rating: number;
-  trainer: User;
+  coach: User;
   isSpecialOffer: boolean;
 };
 
 export type Review = {
   id?: string;
   author: User;
-  workoutID: string;
+  workout: Workout;
   rating: number;
   description: string;
   date: Date;
@@ -100,8 +101,9 @@ export type Review = {
 export type Order = {
   id?: string;
   orderType: string;
-  workoutID: string;
-  pricePerworkout: number;
+  user: User;
+  workout: Workout;
+  pricePerWorkout: number;
   fullPrice: number;
   paymentMethod: PaymentMethod;
 };
@@ -115,10 +117,10 @@ export enum PaymentMethod {
 export enum Status {
   Accepted = 'accepted',
   Rejected = 'rejected',
-  ForConsideration = 'for consideration',
+  ForConsideration = 'for_consideration',
 }
 
-export type Personalworkout = {
+export type PersonalWorkout = {
   id?: string;
   author: User;
   partner: User;
@@ -136,6 +138,6 @@ export type Notify = {
 
 export type UserBalance = {
   id?: string;
-  userID?: string;
+  user: User;
   purchasedWorkouts: { workout: Workout; num: number }[];
 };
