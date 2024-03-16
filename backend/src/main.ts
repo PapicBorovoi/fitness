@@ -18,11 +18,11 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
-    })
-  )
+    }),
+  );
 
   app.enableCors();
-  
+
   const port = app.get(ConfigService).get('app.port');
   const host = app.get(ConfigService).get('app.host');
 

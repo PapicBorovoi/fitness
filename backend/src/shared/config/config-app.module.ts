@@ -8,8 +8,7 @@ import appConfig from './app.config';
       isGlobal: true,
       cache: true,
       load: [appConfig],
-    })
-  ]
+    }),
+  ],
 })
-export class ConfigAppModule {
-}
+export class ConfigAppModule {}

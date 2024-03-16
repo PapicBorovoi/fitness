@@ -1,4 +1,4 @@
-import { registerAs } from "@nestjs/config";
+import { registerAs } from '@nestjs/config';
 import Joi = require('joi');
 
 const DEFAULT_PORT = 3000;
@@ -32,17 +32,17 @@ const validationSchema = Joi.object({
     accessTokenExpiresIn: Joi.string().required(),
     refreshTokenSecret: Joi.string().required(),
     refreshTokenExpiresIn: Joi.string().required(),
-  })
-})
+  }),
+});
 
 const validateConfig = (config: AppConfig) => {
   const error = validationSchema.validate(config).error;
   if (error) {
     throw new Error(`Config validation error: ${error.message}`);
   }
-}
+};
 
-const getConfig = (): AppConfig =>  {
+const getConfig = (): AppConfig => {
   const config: AppConfig = {
     port: parseInt(process.env.PORT, 10) || DEFAULT_PORT,
     host: process.env.HOST,
@@ -57,11 +57,11 @@ const getConfig = (): AppConfig =>  {
       refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET,
       refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
     },
-  }
+  };
 
   validateConfig(config);
 
   return config;
-}; 
+};
 
 export default registerAs('app', getConfig);
