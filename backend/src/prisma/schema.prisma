@@ -26,27 +26,29 @@ model User {
   description String
   location MetroStation
   backgroundUri String @default("default-background.png") @map("background_uri")
-  userRole UserRole?
+  userRole UserRole? @relation("UserRole")
   coachRole CoachRole?
   review Review[]
   order Order[]
   personalWorkoutAuthor PersonalWorkout[] @relation("PersonalWorkoutAuthor")
   personalWorkoutPartner PersonalWorkout[] @relation("PersonalWorkoutPartner")
   notify Notify[]
-  userBalance UserBalance?
  
   @@map("users")
 }
 
 model UserRole {
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String @unique() @map("user_id")
+  user User @relation("UserRole", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String @id() @unique() @map("user_id")
   skill Skill @default(newbie)
   workoutType WorkoutType @map("workout_type")
   workoutTime WorkoutTime @map("workout_time")
   caloriesToBurn Int @map("calories_to_burn")
   caloriesToSpend Int @map("calories_to_spend")
   isReadyForWorkout Boolean @default(false) @map("is_ready_for_workout")
+  userBalance UserBalance?
+  friends UserRole[] @relation("UserFriends")
+  friendOf UserRole[] @relation("UserFriends")
 
   @@map("users_role")
 }
@@ -139,7 +141,7 @@ model Notify {
 
 model UserBalance {
   id String @unique() @default(uuid()) 
-  user User @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  user UserRole @relation(fields: [userId], references: [userId], onUpdate: Cascade, onDelete: Cascade)
   userId String @unique() @map("user_id")
   purchasedWorkouts PurchasedWorkout[]
 
