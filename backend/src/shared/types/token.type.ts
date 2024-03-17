@@ -3,8 +3,14 @@ export type Token = {
   refreshToken: string;
 }
 
+export type TokenData = {
+  userId: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
 export type AccessTokenPayload = {
-  id: string;
+  userId: string;
   name: string;
   email: string;
   avatarUri: string;
@@ -12,5 +18,7 @@ export type AccessTokenPayload = {
 }
 
 export type RefreshTokenPayload = {
-  id: string;
+  userId: string;
+  email: string;
+  createdAt: Date;
 }

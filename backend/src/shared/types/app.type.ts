@@ -5,7 +5,7 @@ export type User = {
   avatarUri: string;
   password: string;
   gender: Gender;
-  birthday: Date;
+  birthday?: Date;
   role: UserRole | CoachRole;
   description: string;
   location: MetroStation;
@@ -15,7 +15,7 @@ export type User = {
 export enum Gender {
   Male = 'male',
   Female = 'female',
-  NotSpecified = 'not_specified'
+  NotSpecified = 'not_specified',
 }
 
 export enum MetroStation {
@@ -24,6 +24,11 @@ export enum MetroStation {
   Udelnaya = 'udelnaya',
   Zvezdnaya = 'zvezdnaya',
   Sportivnaya = 'sportivnaya',
+}
+
+export enum Role {
+  User = 'user',
+  Coach = 'coach',
 }
 
 export type UserRole = {
@@ -49,6 +54,7 @@ export enum WorkoutType {
   Crossfit = 'crossfit',
   Aerobics = 'aerobics',
   Pilates = 'pilates',
+  Strength = 'strength',
 }
 
 export enum WorkoutTime {
