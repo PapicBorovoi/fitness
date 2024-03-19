@@ -45,7 +45,7 @@ export class CreateUserDto {
   })
   @IsString()
   @IsOptional()
-  public avatar: string;
+  public avatarUri: string;
 
   @ApiProperty({
     example: Gender.Male,
@@ -80,7 +80,7 @@ export class CreateUserDto {
     required: true,
   })
   @IsEnum(Role)
-  public role: string;
+  public roleType: string;
 
   @ApiProperty({
     example: MetroStation.Udelnaya,
@@ -88,7 +88,7 @@ export class CreateUserDto {
     required: true,
   })
   @IsEnum(MetroStation)
-  public metroStation: string;
+  public location: string;
 
   @ApiProperty({
     example: 'background.png',

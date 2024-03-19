@@ -6,7 +6,8 @@ export type User = {
   password: string;
   gender: Gender;
   birthday?: Date;
-  role: UserRole | CoachRole;
+  role?: UserRole | CoachRole;
+  roleType: Role;
   description: string;
   location: MetroStation;
   backgroundUri: string;

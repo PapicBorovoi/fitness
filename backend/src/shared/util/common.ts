@@ -6,19 +6,19 @@ export type TimeAndUnit = { value: number; unit: DateTimeUnit };
 export function fillDto<T, V>(
   DtoClass: new () => T,
   plainObject: V,
-  options?: ClassTransformOptions
+  options?: ClassTransformOptions,
 ): T;
 
 export function fillDto<T, V>(
   DtoClass: new () => T,
   plainObject: V,
-  options?: ClassTransformOptions
+  options?: ClassTransformOptions,
 ): T[];
 
 export function fillDto<T, V>(
   DtoClass: new () => T,
   plainObject: V,
-  options?: ClassTransformOptions
+  options?: ClassTransformOptions,
 ): T | T[] {
   return plainToInstance(DtoClass, plainObject, {
     excludeExtraneousValues: true,

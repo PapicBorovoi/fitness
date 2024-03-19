@@ -3,8 +3,8 @@ import { ConfigAppModule } from './shared/config/config-app.module';
 import { UserModule } from './user/user.module';
 
 @Module({
-  imports: [ConfigAppModule],
-  controllers: [UserModule],
+  imports: [ConfigAppModule, UserModule],
+  controllers: [],
   providers: [],
 })
 export class AppModule {}
