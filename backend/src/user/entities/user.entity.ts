@@ -27,6 +27,7 @@ export class UserEntity implements Omit<User, 'password'> {
   constructor(user: User) {
     this.id = user.id;
     this.name = user.name;
+    this.email = user.email;
     this.avatarUri = user.avatarUri;
     this.gender = user.gender;
     this.birthday = user.birthday;

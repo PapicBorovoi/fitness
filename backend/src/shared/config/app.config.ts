@@ -7,6 +7,8 @@ export interface AppConfig {
   port: number;
   host: string;
   db: {
+    host: string;
+    port: number;
     username: string;
     password: string;
     name: string;
@@ -23,6 +25,8 @@ const validationSchema = Joi.object({
   port: Joi.number().port().required(),
   host: Joi.string().required(),
   db: Joi.object({
+    host: Joi.string().required(),
+    port: Joi.number().port().required(),
     username: Joi.string().required(),
     password: Joi.string().required(),
     name: Joi.string().required(),
@@ -47,6 +51,8 @@ const getConfig = (): AppConfig => {
     port: parseInt(process.env.PORT, 10) || DEFAULT_PORT,
     host: process.env.HOST,
     db: {
+      host: process.env.POSTGRES_HOST,
+      port: parseInt(process.env.POSTGRES_PORT, 10),
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       name: process.env.POSTGRES_DB,

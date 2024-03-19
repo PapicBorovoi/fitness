@@ -57,8 +57,22 @@ export class UserService {
     return user;
   }
 
-  public async refresh(payload: RefreshTokenPayload) {
+  public async refresh(payload: RefreshTokenPayload, token: string) {
     const user = await this.userRepository.read({ id: payload.userId });
+
+    if (!user) {
+      throw new UnauthorizedException('The user has been deleted');
+    }
+
+    const tokenInfo = await this.userRepository.readRefreshToken(user.id);
+
+    if (
+      !token ||
+      tokenInfo.token !== token ||
+      tokenInfo.expiresAt.getTime() < new Date().getTime()
+    ) {
+      throw new UnauthorizedException('Invalid token');
+    }
 
     const tokens = await this.createTokenPair(user);
 
@@ -67,25 +81,45 @@ export class UserService {
 
   public async createTokenPair(user: UserEntity) {
     const createdAt = new Date();
-    const expiresAt = new Date(createdAt.getTime() * 86_400_000 * 7);
+    const expiresAt = new Date(
+      createdAt.getTime() *
+        86_400_000 *
+        Number(
+          this.configService
+            .get<string>('app.jwt.refreshTokenExpiresIn')
+            .slice(0, 1),
+        ),
+    );
 
     const accessTokenPayload = this.createTokenPayload(user);
 
-    const refreshTokenPayload = await this.userRepository.createRefreshToken(
+    const tokenPair = {
+      refreshToken: await this.jwtService.signAsync(
+        {
+          userId: user.id,
+          expiresAt,
+          createdAt,
+        },
+        {
+          secret: this.configService.get('app.jwt.refreshTokenSecret'),
+          expiresIn: this.configService.get('app.jwt.refreshTokenExpiresIn'),
+        },
+      ),
+      accessToken: await this.jwtService.signAsync(accessTokenPayload),
+    };
+
+    await this.userRepository.deleteRefreshToken(user.id);
+
+    await this.userRepository.createRefreshToken(
       new RefreshTokenEntity({
         userId: user.id,
+        token: tokenPair.refreshToken,
         expiresAt,
         createdAt,
       }),
     );
 
-    return {
-      refreshToken: await this.jwtService.signAsync(refreshTokenPayload, {
-        secret: this.configService.get('app.jwt.refreshTokenSecret'),
-        expiresIn: this.configService.get('app.jwt.refreshTokenExpiresIn'),
-      }),
-      accessToken: await this.jwtService.signAsync(accessTokenPayload),
-    };
+    return tokenPair;
   }
 
   public async login(loginDto: LoginDto) {

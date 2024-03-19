@@ -6,17 +6,17 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtRefreshStrategy } from 'src/shared/strategies/jwt-refresh.strategy';
 import { JWTAccessStrategy } from 'src/shared/strategies/jwt-access.strategy';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { DatabaseModule } from 'src/shared/db/db.module';
 
 @Module({
   imports: [
-    PrismaModule,
+    DatabaseModule,
     JwtModule.registerAsync({
       useFactory: (configservice: ConfigService) => ({
         secret: configservice.get('app.jwt.accessTokenSecret'),
         signOptions: {
           expiresIn: configservice.get('app.jwt.accessTokenExpiresIn'),
-          encoding: 'HS256',
+          algorithm: 'HS256',
         },
       }),
       inject: [ConfigService],

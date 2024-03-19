@@ -1,12 +1,14 @@
-import { RefreshToken } from '../../../node_modules/.prisma/client';
+import { RefreshTokenPayload } from 'src/shared/types/token.type';
 
-export class RefreshTokenEntity implements RefreshToken {
+export class RefreshTokenEntity implements RefreshTokenPayload {
   userId: string;
+  token: string;
   expiresAt: Date;
   createdAt: Date;
 
-  constructor(refreshToken: RefreshToken) {
+  constructor(refreshToken: RefreshTokenPayload & { token: string }) {
     this.userId = refreshToken.userId;
+    this.token = refreshToken.token;
     this.expiresAt = refreshToken.expiresAt;
     this.createdAt = refreshToken.createdAt;
   }

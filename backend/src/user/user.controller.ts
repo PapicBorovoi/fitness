@@ -29,11 +29,11 @@ import { UserInfoRdo } from './rdo/user-info.rdo';
 import { TokenRdo } from './rdo/token.rdo';
 
 interface RequestWithAccessPayload extends Request {
-  payload: AccessTokenPayload;
+  user: AccessTokenPayload;
 }
 
 interface RequestWithRefreshPayload extends Request {
-  payload: RefreshTokenPayload;
+  user: RefreshTokenPayload;
 }
 
 @ApiTags('user')
@@ -50,8 +50,8 @@ export class UserController {
   })
   @UseGuards(JWTAuthGuard)
   @Get('check')
-  public async check(@Req() { payload }: RequestWithAccessPayload) {
-    const result = await this.userService.check(payload);
+  public async check(@Req() { user }: RequestWithAccessPayload) {
+    const result = await this.userService.check(user);
     return fillDto(UserInfoRdo, result);
   }
 
@@ -92,8 +92,9 @@ export class UserController {
   })
   @Get('refresh')
   @UseGuards(JWTRefreshGuard)
-  public async refresh(@Req() { payload }: RequestWithRefreshPayload) {
-    const result = await this.userService.refresh(payload);
+  public async refresh(@Req() { user, headers }: RequestWithRefreshPayload) {
+    const token = headers['authorization'].slice(7);
+    const result = await this.userService.refresh(user, token);
     return fillDto(TokenRdo, result);
   }
 }
