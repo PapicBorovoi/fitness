@@ -7,6 +7,8 @@ import {
   UseGuards,
   Req,
   Request,
+  Query,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -27,6 +29,8 @@ import { UserRdo } from './rdo/user.rdo';
 import { JWTRefreshGuard } from 'src/shared/guard/jwt-refresh.guard';
 import { UserInfoRdo } from './rdo/user-info.rdo';
 import { TokenRdo } from './rdo/token.rdo';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateRoleDto } from './dto/create-role.dto';
 
 interface RequestWithAccessPayload extends Request {
   user: AccessTokenPayload;
@@ -96,5 +100,50 @@ export class UserController {
     const token = headers['authorization'].slice(7);
     const result = await this.userService.refresh(user, token);
     return fillDto(TokenRdo, result);
+  }
+
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'succesfully fetched user info',
+  })
+  @ApiBadRequestResponse({})
+  @Get()
+  @UseGuards(JWTAuthGuard)
+  public async getUser(@Query('id') id: string) {
+    const result = await this.userService.getUser(id);
+    return fillDto(UserInfoRdo, result);
+  }
+
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'succesfully created user role',
+  })
+  @ApiBadRequestResponse({})
+  @Post('role')
+  @UseGuards(JWTAuthGuard)
+  public async createRole(
+    @Body() role: CreateRoleDto,
+    @Req() { user }: RequestWithAccessPayload,
+  ) {
+    const result = await this.userService.createRole(user.userId, role);
+    return fillDto(UserInfoRdo, result);
+  }
+
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'succesfully updated user info',
+  })
+  @ApiBadRequestResponse({})
+  @UseGuards(JWTAuthGuard)
+  @Patch()
+  public async redactUser(
+    @Req() { user }: RequestWithAccessPayload,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    const result = await this.userService.redactUser(
+      user.userId,
+      updateUserDto,
+    );
+    return fillDto(UserInfoRdo, result);
   }
 }

@@ -17,7 +17,7 @@ export class CreateUserDto {
     required: true,
   })
   @MinLength(1)
-  @MaxLength(12)
+  @MaxLength(15)
   public name: string;
 
   @ApiProperty({
@@ -53,7 +53,7 @@ export class CreateUserDto {
     required: true,
   })
   @IsEnum(Gender)
-  public gender: string;
+  public gender: Gender;
 
   @ApiProperty({
     example: new Date(),
@@ -80,7 +80,7 @@ export class CreateUserDto {
     required: true,
   })
   @IsEnum(Role)
-  public roleType: string;
+  public roleType: Role;
 
   @ApiProperty({
     example: MetroStation.Udelnaya,
@@ -88,7 +88,7 @@ export class CreateUserDto {
     required: true,
   })
   @IsEnum(MetroStation)
-  public location: string;
+  public location: MetroStation;
 
   @ApiProperty({
     example: 'background.png',

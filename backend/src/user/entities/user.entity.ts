@@ -22,9 +22,9 @@ export class UserEntity implements Omit<User, 'password'> {
   location: MetroStation;
   backgroundUri: string;
   role?: UserRole | CoachRole;
-  passwordHash?: string = '';
+  passwordHash?: string;
 
-  constructor(user: User) {
+  constructor(user: Omit<User, 'password'>) {
     this.id = user.id;
     this.name = user.name;
     this.email = user.email;
