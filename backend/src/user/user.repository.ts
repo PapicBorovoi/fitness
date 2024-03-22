@@ -13,6 +13,7 @@ import {
   UserRow,
   UserWithRolesRow,
 } from 'src/shared/types/db.interface';
+import { GetUsersQuery } from './user.type';
 
 export class UserRepository {
   constructor(
@@ -379,5 +380,114 @@ export class UserRepository {
       client.release();
       return userEntity;
     }
+  }
+
+  public async readUsers(
+    userId: string,
+    options: {
+      limit?: number;
+      offset?: number;
+      filters?: GetUsersQuery;
+    },
+  ): Promise<UserEntity[] | null> {
+    let query = `
+    SELECT
+      u.*,
+      ur.skill user_skill,
+      ur.workout_type user_workout_type,
+      ur.workout_time user_workout_time,
+      ur.calories_to_burn user_calories_to_burn,
+      ur.calories_to_spend user_calories_to_spend,
+      ur.is_ready_for_workout user_is_ready_for_workout,
+      cr.skill coach_skill,
+      cr.workout_type coach_workout_type,
+      cr.sertifikat_uri coach_sertifikat_uri,
+      cr.merits coach_merits,
+      cr.is_ready_to_coach coach_is_ready_to_coach
+    FROM
+      users u
+      LEFT JOIN users_role ur ON u.id = ur.user_id
+      LEFT JOIN coaches_role cr ON u.id = cr.user_id
+  `;
+
+    const values: string[] = [];
+    let whereClause = ' WHERE id != $1';
+    values.push(userId);
+
+    if (options.filters) {
+      const { skill, workoutType, role, location } = options.filters;
+
+      if (skill) {
+        whereClause += ` AND (ur.skill = $${values.length + 1} OR cr.skill = $${values.length + 1})`;
+        values.push(skill);
+      }
+
+      if (workoutType) {
+        whereClause += ` AND (ur.workout_type = $${values.length + 1} OR cr.workout_type = $${values.length + 1})`;
+        values.push(workoutType);
+      }
+
+      if (role) {
+        whereClause += ` AND u.role = $${values.length + 1}`;
+        values.push(role);
+      }
+
+      if (location) {
+        whereClause += ` AND u.location = $${values.length + 1}`;
+        values.push(location);
+      }
+    }
+
+    query += whereClause;
+
+    if (options.limit !== undefined) {
+      query += ' LIMIT $' + (values.length + 1);
+      values.push(options.limit.toString());
+    }
+
+    if (options.offset !== undefined) {
+      query += ' OFFSET $' + (values.length + 1);
+      values.push(options.offset.toString());
+    }
+
+    const { rows } = await this.pool.query<UserWithRolesRow>(query, values);
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    const users: UserEntity[] = rows.map((row) => {
+      let userRole: UserRole | undefined;
+      let coachRole: CoachRole | undefined;
+
+      if (row.user_skill) {
+        userRole = {
+          skill: row.user_skill,
+          workoutType: row.user_workout_type!,
+          workoutTime: row.user_workout_time!,
+          caloriesToBurn: row.user_calories_to_burn!,
+          caloriesToSpend: row.user_calories_to_spend!,
+          isReadyForWorkout: row.user_is_ready_for_workout!,
+        };
+      } else if (row.coach_skill) {
+        coachRole = {
+          skill: row.coach_skill,
+          workoutType: row.coach_workout_type!,
+          sertifikatUri: row.coach_sertifikat_uri!,
+          merits: row.coach_merits!,
+          isReadyToCoach: row.coach_is_ready_to_coach!,
+        };
+      }
+
+      return new UserEntity({
+        ...row,
+        backgroundUri: row.background_uri,
+        avatarUri: row.avatar_uri,
+        roleType: row.role,
+        role: coachRole ?? userRole ?? undefined,
+      });
+    });
+
+    return users;
   }
 }

@@ -31,6 +31,7 @@ import { UserInfoRdo } from './rdo/user-info.rdo';
 import { TokenRdo } from './rdo/token.rdo';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
+import { QueryDto } from './dto/query.dto';
 
 interface RequestWithAccessPayload extends Request {
   user: AccessTokenPayload;
@@ -144,6 +145,22 @@ export class UserController {
       user.userId,
       updateUserDto,
     );
+    return fillDto(UserInfoRdo, result);
+  }
+
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'succesfully fetched users',
+  })
+  @ApiUnauthorizedResponse({})
+  @UseGuards(JWTAuthGuard)
+  @Get('users')
+  public async getUsers(
+    @Req() { user }: RequestWithAccessPayload,
+    @Query()
+    query: QueryDto,
+  ) {
+    const result = await this.userService.getUsers(user.userId, query);
     return fillDto(UserInfoRdo, result);
   }
 }

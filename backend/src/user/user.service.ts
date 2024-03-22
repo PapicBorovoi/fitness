@@ -21,6 +21,8 @@ import { UserRoleEntity } from './entities/user-role.entity';
 import { CoachRoleEntity } from './entities/coach-role.entity';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { isUserRole, isCoachRole } from 'src/shared/type-guards/type-guards';
+import { DEFAULT_LIMIT, DEFAULT_PAGE } from './user.const';
+import { QueryDto } from './dto/query.dto';
 
 const USER_ROLE_PROPERTIES = [
   'caloriesToSpend',
@@ -245,6 +247,29 @@ export class UserService {
     }
 
     return updatedUser;
+  }
+
+  public async getUsers(
+    userId: string,
+    query: QueryDto,
+  ): Promise<UserEntity[]> {
+    const user = await this.userRepository.read({ id: userId });
+
+    if (!user) {
+      throw new UnauthorizedException('User has been deleted');
+    }
+
+    if (user.roleType === Role.Coach) {
+      throw new UnauthorizedException('Coaches can not acces users info ');
+    }
+
+    const users = await this.userRepository.readUsers(userId, {
+      limit: DEFAULT_LIMIT,
+      offset: DEFAULT_PAGE * DEFAULT_LIMIT,
+      filters: query,
+    });
+
+    return users;
   }
 
   private createTokenPayload(user: UserEntity): AccessTokenPayload {
