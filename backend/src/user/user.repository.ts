@@ -1,24 +1,18 @@
 import { Pool } from 'pg';
 import { UserEntity } from './entities/user.entity';
-import {
-  CoachRole,
-  Gender as GenderType,
-  MetroStation as MetroType,
-  Role as RoleType,
-  UserRole,
-  Skill,
-  WorkoutTime,
-  WorkoutType,
-  Role,
-  Gender,
-  MetroStation,
-} from '../shared/types/app.type';
+import { CoachRole, UserRole, Role } from '../shared/types/app.type';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenEntity } from './entities/refresh-token.entity';
 import { Inject, Logger } from '@nestjs/common';
 import { UserRoleEntity } from './entities/user-role.entity';
 import { CoachRoleEntity } from './entities/coach-role.entity';
 import { isCoachRole, isUserRole } from 'src/shared/type-guards/type-guards';
+import {
+  CoachRoleRow,
+  UserRoleRow,
+  UserRow,
+  UserWithRolesRow,
+} from 'src/shared/types/db.interface';
 
 export class UserRepository {
   constructor(
@@ -40,7 +34,7 @@ export class UserRepository {
 
     const {
       rows: [user],
-    } = await this.pool.query(
+    } = await this.pool.query<UserRow>(
       'INSERT INTO users (id, email, name, gender, location, role, birthday, password_hash, avatar_uri, description, background_uri) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
       [
         id,
@@ -59,14 +53,10 @@ export class UserRepository {
 
     return new UserEntity({
       ...user,
-      gender: user.gender as GenderType,
       avatarUri: user.avatar_uri,
-      location: user.location as MetroType,
-      roleType: user.role as RoleType,
+      roleType: user.role,
       backgroundUri: user.background_uri,
-      birthday: user.birthday,
       role: undefined,
-      password: undefined,
     });
   }
 
@@ -106,7 +96,7 @@ export class UserRepository {
       return null;
     }
 
-    const { rows } = await this.pool.query(query, values);
+    const { rows } = await this.pool.query<UserWithRolesRow>(query, values);
 
     if (rows.length === 0) {
       return null;
@@ -117,35 +107,35 @@ export class UserRepository {
     let userRole: UserRole | undefined;
     let coachRole: CoachRole | undefined;
 
-    if (user.user_is_ready_for_workout) {
+    if (user.user_skill) {
       userRole = {
-        skill: user.user_skill as Skill,
-        workoutType: user.user_workout_type as WorkoutType,
-        workoutTime: user.user_workout_time as WorkoutTime,
+        skill: user.user_skill,
+        workoutType: user.user_workout_type,
+        workoutTime: user.user_workout_time,
         caloriesToBurn: user.user_calories_to_burn,
         caloriesToSpend: user.user_calories_to_spend,
         isReadyForWorkout: user.user_is_ready_for_workout,
       };
-    } else if (user.coach_is_ready_to_coach) {
+    } else if (user.coach_skill) {
       coachRole = {
-        skill: user.coach_skill as Skill,
-        workoutType: user.coach_workout_type as WorkoutType,
+        skill: user.coach_skill,
+        workoutType: user.coach_workout_type,
         sertifikatUri: user.coach_sertifikat_uri,
         merits: user.coach_merits,
         isReadyToCoach: user.coach_is_ready_to_coach,
       };
     }
 
-    return new UserEntity({
-      ...user,
-      backgroundUri: user.background_uri,
-      avatarUri: user.avatar_uri,
-      gender: user.gender as GenderType,
-      roleType: user.role as Role,
-      location: user.location as MetroType,
-      birthday: user.birthday ? new Date(user.birthday) : undefined,
-      role: coachRole ?? userRole ?? undefined,
-    });
+    return new UserEntity(
+      {
+        ...user,
+        backgroundUri: user.background_uri,
+        avatarUri: user.avatar_uri,
+        roleType: user.role,
+        role: coachRole ?? userRole ?? undefined,
+      },
+      user.password_hash,
+    );
   }
 
   public async createRefreshToken(
@@ -225,7 +215,7 @@ export class UserRepository {
       userRole.isReadyForWorkout.toString(),
     ];
 
-    const { rows } = await this.pool.query(
+    const { rows } = await this.pool.query<UserRoleRow>(
       'INSERT INTO users_role (user_id, skill, workout_type, workout_time, calories_to_burn, calories_to_spend, is_ready_for_workout) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
       values,
     );
@@ -235,12 +225,12 @@ export class UserRepository {
     }
 
     return new UserRoleEntity({
-      skill: rows[0].skill as Skill,
-      workoutType: rows[0].workout_type as WorkoutType,
-      workoutTime: rows[0].workout_time as WorkoutTime,
-      caloriesToBurn: parseInt(rows[0].calories_to_burn, 10),
-      caloriesToSpend: parseInt(rows[0].calories_to_spend, 10),
-      isReadyForWorkout: rows[0].is_ready_for_workout === 'true',
+      skill: rows[0].skill,
+      workoutType: rows[0].workout_type,
+      workoutTime: rows[0].workout_time,
+      caloriesToBurn: rows[0].calories_to_burn,
+      caloriesToSpend: rows[0].calories_to_spend,
+      isReadyForWorkout: rows[0].is_ready_for_workout,
     });
   }
 
@@ -257,7 +247,7 @@ export class UserRepository {
       coachRole.isReadyToCoach.toString(),
     ];
 
-    const { rows } = await this.pool.query(
+    const { rows } = await this.pool.query<CoachRoleRow>(
       'INSERT INTO coaches_role (user_id, skill, workout_type, sertifikat_uri, merits, is_ready_to_coach) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
       values,
     );
@@ -267,8 +257,8 @@ export class UserRepository {
     }
 
     return new CoachRoleEntity({
-      skill: rows[0].skill as Skill,
-      workoutType: rows[0].workout_type as WorkoutType,
+      skill: rows[0].skill,
+      workoutType: rows[0].workout_type,
       sertifikatUri: rows[0].sertifikat_uri,
       merits: rows[0].merits,
       isReadyToCoach: rows[0].is_ready_to_coach,
@@ -293,7 +283,7 @@ export class UserRepository {
       RETURNING *
     `;
 
-      const { rows } = await client.query(query, [
+      const { rows } = await client.query<UserRow>(query, [
         updateUser.name,
         updateUser.avatarUri,
         updateUser.gender,
@@ -312,12 +302,9 @@ export class UserRepository {
 
       userEntity = new UserEntity({
         ...user,
-        birthday: user.birthday ? new Date(user.birthday) : undefined,
         backgroundUri: user.background_uri,
         avatarUri: user.avatar_uri,
-        gender: user.gender as Gender,
-        location: user.location as MetroStation,
-        roleType: user.role as Role,
+        roleType: user.role,
         role: undefined,
       });
 
@@ -332,7 +319,7 @@ export class UserRepository {
 
         const {
           rows: [userRole],
-        } = await client.query(query, [
+        } = await client.query<UserRoleRow>(query, [
           updateUser.role.skill,
           updateUser.role.workoutType,
           updateUser.role.workoutTime,
@@ -343,12 +330,12 @@ export class UserRepository {
         ]);
 
         userEntity.role = {
-          skill: userRole.skill as Skill,
-          workoutTime: userRole.workout_time as WorkoutTime,
-          workoutType: userRole.workout_type as WorkoutType,
-          caloriesToSpend: parseInt(userRole.calories_to_spend, 10),
-          caloriesToBurn: parseInt(userRole.calories_to_burn, 10),
-          isReadyForWorkout: userRole.is_ready_for_workout === 'true',
+          skill: userRole.skill,
+          workoutTime: userRole.workout_time,
+          workoutType: userRole.workout_type,
+          caloriesToSpend: userRole.calories_to_spend,
+          caloriesToBurn: userRole.calories_to_burn,
+          isReadyForWorkout: userRole.is_ready_for_workout,
         } as UserRole;
       } else if (
         whatRoleToUpdate === Role.Coach &&
@@ -363,7 +350,7 @@ export class UserRepository {
 
         const {
           rows: [coachRole],
-        } = await client.query(query, [
+        } = await client.query<CoachRoleRow>(query, [
           updateUser.role.skill,
           updateUser.role.workoutType,
           updateUser.role.sertifikatUri,
@@ -373,11 +360,11 @@ export class UserRepository {
         ]);
 
         userEntity.role = {
-          skill: coachRole.skill as Skill,
-          workoutType: coachRole.workout_type as WorkoutType,
+          skill: coachRole.skill,
+          workoutType: coachRole.workout_type,
           sertifikatUri: coachRole.sertifikat_uri,
           merits: coachRole.merits,
-          isReadyToCoach: coachRole.is_ready_to_coach === 'true',
+          isReadyToCoach: coachRole.is_ready_to_coach,
         } as CoachRole;
       }
 

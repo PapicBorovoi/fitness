@@ -138,6 +138,8 @@ export class UserService {
   public async login(loginDto: LoginDto) {
     const user = await this.userRepository.read({ email: loginDto.email });
 
+    console.log(user);
+
     if (!user) {
       throw new UnauthorizedException('Invalid login');
     }
@@ -206,8 +208,6 @@ export class UserService {
       throw new UnauthorizedException('User has been deleted');
     }
 
-    console.log(user);
-
     this.checkUpdateRoleType(user, updateUserDto);
 
     let whatRoleToUpdate: Role | undefined;
@@ -233,8 +233,6 @@ export class UserService {
         ...updateUserDto,
       };
     }
-
-    console.log(updateUser);
 
     const updatedUser = await this.userRepository.update(
       userId,

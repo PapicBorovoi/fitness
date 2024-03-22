@@ -24,7 +24,7 @@ export class UserEntity implements Omit<User, 'password'> {
   role?: UserRole | CoachRole;
   passwordHash?: string;
 
-  constructor(user: Omit<User, 'password'>) {
+  constructor(user: Omit<User, 'password'>, passwordHash?: string) {
     this.id = user.id;
     this.name = user.name;
     this.email = user.email;
@@ -36,6 +36,7 @@ export class UserEntity implements Omit<User, 'password'> {
     this.location = user.location;
     this.backgroundUri = user.backgroundUri;
     this.role = user.role;
+    this.passwordHash = passwordHash;
   }
 
   public async setPassword(password: string): Promise<UserEntity> {
