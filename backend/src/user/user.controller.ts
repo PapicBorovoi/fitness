@@ -6,7 +6,6 @@ import {
   Body,
   UseGuards,
   Req,
-  Request,
   Query,
   Patch,
 } from '@nestjs/common';
@@ -19,10 +18,6 @@ import {
 import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { JWTAuthGuard } from 'src/shared/guard/jwt-auth.guard';
-import {
-  AccessTokenPayload,
-  RefreshTokenPayload,
-} from 'src/shared/types/token.type';
 import { UserService } from './user.service';
 import { fillDto } from 'src/shared/util/common';
 import { UserRdo } from './rdo/user.rdo';
@@ -32,14 +27,10 @@ import { TokenRdo } from './rdo/token.rdo';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { QueryDto } from './dto/query.dto';
-
-interface RequestWithAccessPayload extends Request {
-  user: AccessTokenPayload;
-}
-
-interface RequestWithRefreshPayload extends Request {
-  user: RefreshTokenPayload;
-}
+import {
+  RequestWithAccessPayload,
+  RequestWithRefreshPayload,
+} from 'src/shared/types/token.type';
 
 @ApiTags('user')
 @Controller('user')

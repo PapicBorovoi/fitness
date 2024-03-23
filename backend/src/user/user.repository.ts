@@ -310,7 +310,6 @@ export class UserRepository {
       });
 
       if (whatRoleToUpdate === Role.User && isUserRole(updateUser.role)) {
-        console.log('user');
         query = `
           UPDATE users_role
           SET skill = $1, workout_type = $2, workout_time = $3, calories_to_burn = $4, calories_to_spend = $5, is_ready_for_workout = $6

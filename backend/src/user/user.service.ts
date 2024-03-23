@@ -140,8 +140,6 @@ export class UserService {
   public async login(loginDto: LoginDto) {
     const user = await this.userRepository.read({ email: loginDto.email });
 
-    console.log(user);
-
     if (!user) {
       throw new UnauthorizedException('Invalid login');
     }
@@ -167,13 +165,11 @@ export class UserService {
 
   public async createRole(userId: string, role: CreateRoleDto) {
     const user = await this.userRepository.read({ id: userId });
-    console.log(userId);
 
     if (!user) {
       throw new UnauthorizedException('User has been deleted');
     }
 
-    console.log(role.roleType, user.roleType);
     if (user.roleType !== role.roleType) {
       throw new BadRequestException('Roles does not match');
     }

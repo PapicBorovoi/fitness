@@ -5,6 +5,7 @@ import {
   WorkoutType,
   WorkoutTime,
   Skill,
+  TargetGender,
 } from './app.type';
 
 export interface UserRow {
@@ -63,4 +64,21 @@ export interface UserWithRolesRow {
   coach_sertifikat_uri: string | null;
   coach_merits: string | null;
   coach_is_ready_to_coach: boolean | null;
+}
+
+export interface WorkoutRow {
+  id: string;
+  name: string;
+  background_uri: string;
+  skill: Skill;
+  workout_type: WorkoutType;
+  workout_time: WorkoutTime;
+  price: number;
+  calories: number;
+  description: string;
+  gender: TargetGender;
+  video_url: string;
+  rating: number;
+  coach_id: string;
+  is_special_offer: boolean;
 }

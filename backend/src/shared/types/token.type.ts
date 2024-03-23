@@ -22,3 +22,11 @@ export type RefreshTokenPayload = {
   createdAt: Date;
   expiresAt: Date;
 };
+
+export interface RequestWithAccessPayload extends Request {
+  user: AccessTokenPayload;
+}
+
+export interface RequestWithRefreshPayload extends Request {
+  user: RefreshTokenPayload;
+}
