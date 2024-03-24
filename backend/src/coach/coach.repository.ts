@@ -46,14 +46,72 @@ export class CoachRepository {
 
     const nw: WorkoutRow = rows[0];
 
+    return this.createWorkoutEntity(nw);
+  }
+
+  public async readWorkout(id: string): Promise<WorkoutEntity | null> {
+    const query = `
+      SELECT * FROM workouts WHERE id = $1
+    `;
+
+    const values = [id];
+
+    const { rows } = await this.pool.query(query, values);
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    const workout: WorkoutRow = rows[0];
+
+    return this.createWorkoutEntity(workout);
+  }
+
+  public async updateWorkout(uw: WorkoutEntity): Promise<WorkoutEntity | null> {
+    const query = `
+      UPDATE workouts
+      SET name = $1, background_uri = $2, skill = $3,  workout_type = $4, 
+      workout_time = $5, price = $6, calories = $7, description = $8, 
+      gender = $9, video_uri = $10, is_special_offer = $11
+      WHERE id = $12
+      RETURNING *
+    `;
+
+    const values = [
+      uw.name,
+      uw.backgroundUri,
+      uw.skill,
+      uw.workoutType,
+      uw.workoutTime,
+      uw.price.toString(),
+      uw.calories.toString(),
+      uw.description,
+      uw.gender,
+      uw.videoUri,
+      uw.isSpecialOffer.toString(),
+      uw.id,
+    ];
+
+    const { rows } = await this.pool.query(query, values);
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    const workout: WorkoutRow = rows[0];
+
+    return this.createWorkoutEntity(workout);
+  }
+
+  private createWorkoutEntity(workout: WorkoutRow) {
     return new WorkoutEntity({
-      ...nw,
-      videoUri: nw.video_url,
-      workoutTime: nw.workout_time,
-      workoutType: nw.workout_type,
-      backgroundUri: nw.background_uri,
-      isSpecialOffer: nw.is_special_offer,
-      coachId: nw.coach_id,
+      ...workout,
+      videoUri: workout.video_uri,
+      workoutTime: workout.workout_time,
+      workoutType: workout.workout_type,
+      backgroundUri: workout.background_uri,
+      isSpecialOffer: workout.is_special_offer,
+      coachId: workout.coach_id,
     });
   }
 }

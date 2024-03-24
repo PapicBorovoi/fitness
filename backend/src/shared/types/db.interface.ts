@@ -77,7 +77,7 @@ export interface WorkoutRow {
   calories: number;
   description: string;
   gender: TargetGender;
-  video_url: string;
+  video_uri: string;
   rating: number;
   coach_id: string;
   is_special_offer: boolean;
