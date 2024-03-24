@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   HttpStatus,
   Req,
@@ -57,6 +58,18 @@ export class CoachController {
       updateWorkoutDto,
       user.userId,
     );
+    return fillDto(WorkoutRdo, result);
+  }
+
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'succesfully fetched workout info',
+  })
+  @ApiBadRequestResponse({})
+  @UseGuards(JWTAuthGuard)
+  @Get('workout/:id')
+  public async getWorkout(@Param('id') id: string) {
+    const result = await this.coachService.getWorkout(id);
     return fillDto(WorkoutRdo, result);
   }
 }

@@ -78,4 +78,14 @@ export class CoachService {
 
     return updatedWorkout;
   }
+
+  public async getWorkout(id: string) {
+    const workout = await this.coachRepository.readWorkout(id);
+
+    if (!workout) {
+      throw new BadRequestException('Workout not found');
+    }
+
+    return workout;
+  }
 }
