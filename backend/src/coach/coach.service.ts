@@ -5,12 +5,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { CoachRepository } from './coach.repository';
-import { UserService } from 'src/user/user.service';
+import { AuthService } from 'src/auth/auth.service';
 import { Role } from 'src/shared/types/app.type';
 import { CreateWorkoutDto } from './dto/create-workout.dto';
 import { WorkoutEntity } from './entities/workout.entity';
 import { UpdateWorkoutDto } from './dto/update-workout.dto';
-import { DEFAULT_LIMIT, DEFAULT_PAGE } from 'src/user/user.const';
+import { DEFAULT_LIMIT, DEFAULT_PAGE } from 'src/auth/auth.const';
 import { WorkoutsQueryDto } from './dto/workouts-query.dto';
 import { OrdersQueryDto } from './dto/orders-query.dto';
 
@@ -18,14 +18,14 @@ import { OrdersQueryDto } from './dto/orders-query.dto';
 export class CoachService {
   constructor(
     private readonly coachRepository: CoachRepository,
-    private readonly userService: UserService,
+    private readonly authService: AuthService,
   ) {}
 
   public async createWorkout(
     userId: string,
     createWorkoutDto: CreateWorkoutDto,
   ) {
-    const user = await this.userService.getUser(userId);
+    const user = await this.authService.getUser(userId);
 
     if (user.roleType !== Role.Coach) {
       throw new BadRequestException('Only coaches can create workouts');
@@ -52,7 +52,7 @@ export class CoachService {
     updateWorkoutDto: UpdateWorkoutDto,
     userId: string,
   ) {
-    const user = await this.userService.getUser(userId);
+    const user = await this.authService.getUser(userId);
 
     if (!user) {
       throw new UnauthorizedException('User has been deleted');
@@ -93,7 +93,7 @@ export class CoachService {
   }
 
   public async getWorkouts(userId: string, query: WorkoutsQueryDto) {
-    const user = await this.userService.getUser(userId);
+    const user = await this.authService.getUser(userId);
 
     if (user.roleType !== Role.Coach) {
       throw new UnauthorizedException('Invalid role');
@@ -116,7 +116,7 @@ export class CoachService {
   }
 
   public async getOrders(userId: string, query: OrdersQueryDto) {
-    const user = await this.userService.getUser(userId);
+    const user = await this.authService.getUser(userId);
 
     if (!user) {
       throw new UnauthorizedException('User has been deleted');

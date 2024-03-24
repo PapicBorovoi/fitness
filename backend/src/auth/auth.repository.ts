@@ -13,9 +13,9 @@ import {
   UserRow,
   UserWithRolesRow,
 } from 'src/shared/types/db.interface';
-import { GetUsersQuery } from './user.type';
+import { GetUsersQuery } from './auth.type';
 
-export class UserRepository {
+export class AuthRepository {
   constructor(
     private readonly configService: ConfigService,
     @Inject('DATABASE_POOL') private readonly pool: Pool,

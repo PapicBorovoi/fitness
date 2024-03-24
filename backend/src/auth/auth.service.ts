@@ -11,7 +11,7 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { Gender, MetroStation, Role } from '../shared/types/app.type';
-import { UserRepository } from './user.repository';
+import { AuthRepository } from './auth.repository';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenEntity } from './entities/refresh-token.entity';
 import { ConfigService } from '@nestjs/config';
@@ -21,7 +21,7 @@ import { UserRoleEntity } from './entities/user-role.entity';
 import { CoachRoleEntity } from './entities/coach-role.entity';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { isUserRole, isCoachRole } from 'src/shared/type-guards/type-guards';
-import { DEFAULT_LIMIT, DEFAULT_PAGE } from './user.const';
+import { DEFAULT_LIMIT, DEFAULT_PAGE } from './auth.const';
 import { QueryDto } from './dto/query.dto';
 
 const USER_ROLE_PROPERTIES = [
@@ -33,15 +33,15 @@ const USER_ROLE_PROPERTIES = [
 const COACH_ROLE_PROPERTIES = ['sertifikatUri', 'isReadyToCoach', 'merits'];
 
 @Injectable()
-export class UserService {
+export class AuthService {
   constructor(
-    private readonly userRepository: UserRepository,
+    private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
 
   public async check(payload: AccessTokenPayload) {
-    const foundUser = await this.userRepository.read({
+    const foundUser = await this.authRepository.read({
       email: payload.email,
       id: payload.userId,
     });
@@ -64,7 +64,7 @@ export class UserService {
         : undefined,
     }).setPassword(createUserDto.password);
 
-    const user = await this.userRepository.create(userEntity);
+    const user = await this.authRepository.create(userEntity);
 
     if (!user) {
       throw new BadRequestException('User already exists');
@@ -74,13 +74,13 @@ export class UserService {
   }
 
   public async refresh(payload: RefreshTokenPayload, token: string) {
-    const user = await this.userRepository.read({ id: payload.userId });
+    const user = await this.authRepository.read({ id: payload.userId });
 
     if (!user) {
       throw new UnauthorizedException('The user has been deleted');
     }
 
-    const tokenInfo = await this.userRepository.readRefreshToken(user.id);
+    const tokenInfo = await this.authRepository.readRefreshToken(user.id);
 
     if (
       !token ||
@@ -123,9 +123,9 @@ export class UserService {
       accessToken: await this.jwtService.signAsync(accessTokenPayload),
     };
 
-    await this.userRepository.deleteRefreshToken(user.id);
+    await this.authRepository.deleteRefreshToken(user.id);
 
-    await this.userRepository.createRefreshToken(
+    await this.authRepository.createRefreshToken(
       new RefreshTokenEntity({
         userId: user.id,
         token: tokenPair.refreshToken,
@@ -138,7 +138,7 @@ export class UserService {
   }
 
   public async login(loginDto: LoginDto) {
-    const user = await this.userRepository.read({ email: loginDto.email });
+    const user = await this.authRepository.read({ email: loginDto.email });
 
     if (!user) {
       throw new UnauthorizedException('Invalid login');
@@ -154,7 +154,7 @@ export class UserService {
   }
 
   public async getUser(userId: string) {
-    const user = await this.userRepository.read({ id: userId });
+    const user = await this.authRepository.read({ id: userId });
 
     if (!user) {
       throw new BadRequestException('No user found');
@@ -164,7 +164,7 @@ export class UserService {
   }
 
   public async createRole(userId: string, role: CreateRoleDto) {
-    const user = await this.userRepository.read({ id: userId });
+    const user = await this.authRepository.read({ id: userId });
 
     if (!user) {
       throw new UnauthorizedException('User has been deleted');
@@ -181,12 +181,12 @@ export class UserService {
     let roleEntity: UserRoleEntity | CoachRoleEntity;
 
     if (role.roleType === Role.User && role.userRole) {
-      roleEntity = await this.userRepository.createUserRole(
+      roleEntity = await this.authRepository.createUserRole(
         user.id,
         new UserRoleEntity(role.userRole),
       );
     } else if (role.roleType === Role.Coach && role.coachRole) {
-      roleEntity = await this.userRepository.createCoachRole(
+      roleEntity = await this.authRepository.createCoachRole(
         user.id,
         new CoachRoleEntity(role.coachRole),
       );
@@ -200,7 +200,7 @@ export class UserService {
   }
 
   public async redactUser(userId: string, updateUserDto: UpdateUserDto) {
-    const user = await this.userRepository.read({ id: userId });
+    const user = await this.authRepository.read({ id: userId });
 
     if (!user) {
       throw new UnauthorizedException('User has been deleted');
@@ -232,7 +232,7 @@ export class UserService {
       };
     }
 
-    const updatedUser = await this.userRepository.update(
+    const updatedUser = await this.authRepository.update(
       userId,
       updateUser,
       whatRoleToUpdate,
@@ -249,7 +249,7 @@ export class UserService {
     userId: string,
     query: QueryDto,
   ): Promise<UserEntity[]> {
-    const user = await this.userRepository.read({ id: userId });
+    const user = await this.authRepository.read({ id: userId });
 
     if (!user) {
       throw new UnauthorizedException('User has been deleted');
@@ -262,7 +262,7 @@ export class UserService {
     const limit = query.take ? query.take : DEFAULT_LIMIT;
     const offset = query.page ? query.page * limit : DEFAULT_PAGE * limit;
 
-    const users = await this.userRepository.readUsers(userId, {
+    const users = await this.authRepository.readUsers(userId, {
       limit,
       offset,
       filters: query,

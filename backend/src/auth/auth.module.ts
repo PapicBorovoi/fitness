@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { UserController } from './user.controller';
-import { UserService } from './user.service';
-import { UserRepository } from './user.repository';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { AuthRepository } from './auth.repository';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtRefreshStrategy } from 'src/shared/strategies/jwt-refresh.strategy';
@@ -22,12 +22,12 @@ import { DatabaseModule } from 'src/shared/db/db.module';
       inject: [ConfigService],
     }),
   ],
-  controllers: [UserController],
+  controllers: [AuthController],
   providers: [
-    UserService,
-    UserRepository,
+    AuthService,
+    AuthRepository,
     JwtRefreshStrategy,
     JWTAccessStrategy,
   ],
 })
-export class UserModule {}
+export class AuthModule {}

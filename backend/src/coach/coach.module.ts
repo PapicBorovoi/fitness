@@ -2,17 +2,17 @@ import { Module } from '@nestjs/common';
 import { CoachService } from './coach.service';
 import { CoachRepository } from './coach.repository';
 import { CoachController } from './coach.controller';
-import { UserModule } from 'src/user/user.module';
-import { UserService } from 'src/user/user.service';
+import { AuthModule } from 'src/auth/auth.module';
+import { AuthService } from 'src/auth/auth.service';
 import { DatabaseModule } from 'src/shared/db/db.module';
-import { UserRepository } from 'src/user/user.repository';
+import { AuthRepository } from 'src/auth/auth.repository';
 import { JWTAccessStrategy } from 'src/shared/strategies/jwt-access.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    UserModule,
+    AuthModule,
     DatabaseModule,
     JwtModule.registerAsync({
       useFactory: (configservice: ConfigService) => ({
@@ -29,8 +29,8 @@ import { ConfigService } from '@nestjs/config';
   providers: [
     CoachService,
     CoachRepository,
-    UserService,
-    UserRepository,
+    AuthService,
+    AuthRepository,
     JWTAccessStrategy,
   ],
 })

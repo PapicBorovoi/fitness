@@ -4,7 +4,7 @@ import {
   Skill,
   WorkoutType,
 } from 'src/shared/types/app.type';
-import { GetUsersQuery } from '../user.type';
+import { GetUsersQuery } from '../auth.type';
 import { IsEnum, IsOptional, Min, Max, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 

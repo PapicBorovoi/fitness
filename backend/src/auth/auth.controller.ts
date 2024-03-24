@@ -18,7 +18,7 @@ import {
 import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { JWTAuthGuard } from 'src/shared/guard/jwt-auth.guard';
-import { UserService } from './user.service';
+import { AuthService } from './auth.service';
 import { fillDto } from 'src/shared/util/common';
 import { UserRdo } from './rdo/user.rdo';
 import { JWTRefreshGuard } from 'src/shared/guard/jwt-refresh.guard';
@@ -34,8 +34,8 @@ import {
 
 @ApiTags('user')
 @Controller('user')
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
 
   @ApiResponse({
     status: HttpStatus.OK,
@@ -47,7 +47,7 @@ export class UserController {
   @UseGuards(JWTAuthGuard)
   @Get('check')
   public async check(@Req() { user }: RequestWithAccessPayload) {
-    const result = await this.userService.check(user);
+    const result = await this.authService.check(user);
     return fillDto(UserInfoRdo, result);
   }
 
@@ -60,8 +60,8 @@ export class UserController {
   })
   @Post('login')
   public async login(@Body() loginDto: LoginDto) {
-    const result = await this.userService.login(loginDto);
-    const tokens = await this.userService.createTokenPair(result);
+    const result = await this.authService.login(loginDto);
+    const tokens = await this.authService.createTokenPair(result);
     return fillDto(UserRdo, { ...result, ...tokens });
   }
 
@@ -74,8 +74,8 @@ export class UserController {
   })
   @Post('register')
   public async register(@Body() createUserDto: CreateUserDto) {
-    const result = await this.userService.register(createUserDto);
-    const tokens = await this.userService.createTokenPair(result);
+    const result = await this.authService.register(createUserDto);
+    const tokens = await this.authService.createTokenPair(result);
     return fillDto(UserRdo, { ...result, ...tokens });
   }
 
@@ -90,7 +90,7 @@ export class UserController {
   @UseGuards(JWTRefreshGuard)
   public async refresh(@Req() { user, headers }: RequestWithRefreshPayload) {
     const token = headers['authorization'].slice(7);
-    const result = await this.userService.refresh(user, token);
+    const result = await this.authService.refresh(user, token);
     return fillDto(TokenRdo, result);
   }
 
@@ -102,7 +102,7 @@ export class UserController {
   @Get()
   @UseGuards(JWTAuthGuard)
   public async getUser(@Query('id') id: string) {
-    const result = await this.userService.getUser(id);
+    const result = await this.authService.getUser(id);
     return fillDto(UserInfoRdo, result);
   }
 
@@ -117,7 +117,7 @@ export class UserController {
     @Body() role: CreateRoleDto,
     @Req() { user }: RequestWithAccessPayload,
   ) {
-    const result = await this.userService.createRole(user.userId, role);
+    const result = await this.authService.createRole(user.userId, role);
     return fillDto(UserInfoRdo, result);
   }
 
@@ -132,7 +132,7 @@ export class UserController {
     @Req() { user }: RequestWithAccessPayload,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    const result = await this.userService.redactUser(
+    const result = await this.authService.redactUser(
       user.userId,
       updateUserDto,
     );
@@ -151,7 +151,7 @@ export class UserController {
     @Query()
     query: QueryDto,
   ) {
-    const result = await this.userService.getUsers(user.userId, query);
+    const result = await this.authService.getUsers(user.userId, query);
     return fillDto(UserInfoRdo, result);
   }
 }
