@@ -8,6 +8,7 @@ import {
   UseGuards,
   Patch,
   Param,
+  Query,
 } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiResponse } from '@nestjs/swagger';
 import { CoachService } from './coach.service';
@@ -17,6 +18,7 @@ import { RequestWithAccessPayload } from 'src/shared/types/token.type';
 import { WorkoutRdo } from './rdo/workout.rdo';
 import { JWTAuthGuard } from 'src/shared/guard/jwt-auth.guard';
 import { UpdateWorkoutDto } from './dto/update-workout.dto';
+import { QueryDto } from './dto/query.dto';
 
 @Controller('coach')
 export class CoachController {
@@ -70,6 +72,21 @@ export class CoachController {
   @Get('workout/:id')
   public async getWorkout(@Param('id') id: string) {
     const result = await this.coachService.getWorkout(id);
+    return fillDto(WorkoutRdo, result);
+  }
+
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'succesfully fetched workouts infos',
+  })
+  @ApiBadRequestResponse({})
+  @UseGuards(JWTAuthGuard)
+  @Get('workouts')
+  public async getWorkouts(
+    @Req() { user }: RequestWithAccessPayload,
+    @Query() query: QueryDto,
+  ) {
+    const result = await this.coachService.getWorkouts(user.userId, query);
     return fillDto(WorkoutRdo, result);
   }
 }

@@ -259,9 +259,12 @@ export class UserService {
       throw new UnauthorizedException('Coaches can not acces users info ');
     }
 
+    const limit = query.take ? query.take : DEFAULT_LIMIT;
+    const offset = query.page ? query.page * limit : DEFAULT_PAGE * limit;
+
     const users = await this.userRepository.readUsers(userId, {
-      limit: DEFAULT_LIMIT,
-      offset: DEFAULT_PAGE * DEFAULT_LIMIT,
+      limit,
+      offset,
       filters: query,
     });
 

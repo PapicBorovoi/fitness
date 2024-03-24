@@ -422,12 +422,12 @@ export class UserRepository {
 
     query += whereClause;
 
-    if (options.limit !== undefined) {
+    if (options.limit) {
       query += ' LIMIT $' + (values.length + 1);
       values.push(options.limit.toString());
     }
 
-    if (options.offset !== undefined) {
+    if (options.offset) {
       query += ' OFFSET $' + (values.length + 1);
       values.push(options.offset.toString());
     }

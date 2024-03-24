@@ -10,6 +10,8 @@ import { Role } from 'src/shared/types/app.type';
 import { CreateWorkoutDto } from './dto/create-workout.dto';
 import { WorkoutEntity } from './entities/workout.entity';
 import { UpdateWorkoutDto } from './dto/update-workout.dto';
+import { QueryDto } from './dto/query.dto';
+import { DEFAULT_LIMIT, DEFAULT_PAGE } from 'src/user/user.const';
 
 @Injectable()
 export class CoachService {
@@ -87,5 +89,28 @@ export class CoachService {
     }
 
     return workout;
+  }
+
+  public async getWorkouts(userId: string, query: QueryDto) {
+    const user = await this.userService.getUser(userId);
+
+    if (user.roleType !== Role.Coach) {
+      throw new UnauthorizedException('Invalid role');
+    }
+
+    const limit = query.take ? query.take : DEFAULT_LIMIT;
+    const offset = query.page ? query.page * limit : query.page * DEFAULT_PAGE;
+
+    const workouts = await this.coachRepository.readWorkouts(userId, {
+      filter: query,
+      limit,
+      offset,
+    });
+
+    if (workouts === null) {
+      throw new InternalServerErrorException('Error while fetching workouts');
+    }
+
+    return workouts;
   }
 }
