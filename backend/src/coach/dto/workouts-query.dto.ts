@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 import { WorkoutTime } from 'src/shared/types/app.type';
 
-export class QueryDto {
+export class WorkoutsQueryDto {
   @IsOptional()
   priceFrom?: number;
 

@@ -3,7 +3,9 @@ import { Pool } from 'pg';
 import { WorkoutEntity } from './entities/workout.entity';
 import { randomUUID } from 'node:crypto';
 import { WorkoutRow } from 'src/shared/types/db.interface';
-import { QueryDto } from './dto/query.dto';
+import { WorkoutsQueryDto } from './dto/workouts-query.dto';
+import { OrdersQueryDto } from './dto/orders-query.dto';
+import { WorkoutWithInfoEntity } from './entities/workout-with-info.entity';
 
 @Injectable()
 export class CoachRepository {
@@ -107,7 +109,7 @@ export class CoachRepository {
   public async readWorkouts(
     userId: string,
     options?: {
-      filter?: QueryDto;
+      filter?: WorkoutsQueryDto;
       limit?: number;
       offset?: number;
     },
@@ -194,6 +196,60 @@ export class CoachRepository {
     );
 
     return workouts;
+  }
+
+  public async readOrdersWithAdditionalInfo(
+    userId: string,
+    sort?: OrdersQueryDto,
+  ) {
+    let query = `
+      SELECT
+        w.*,
+        pw.num num,
+        (w.price * pw.num) earned
+      FROM
+        workouts w
+        LEFT JOIN purchased_workouts pw ON w.id = pw.workout_id
+      WHERE w.coach_id = $1
+    `;
+
+    const values = [userId];
+
+    if (sort) {
+      let sortClause = ' ORDER BY';
+      const startLen = values.length;
+
+      if (sort.bougthAmound) {
+        sortClause += ` num $${values.length + 1}`;
+        values.push(sort.bougthAmound);
+      }
+
+      if (sort.earned) {
+        sortClause +=
+          startLen !== values.length
+            ? ','
+            : ' ' + `earned $${values.length + 1}`;
+        values.push(sort.earned);
+      }
+
+      query += sortClause;
+    }
+
+    const { rows } = await this.pool.query<
+      WorkoutRow & { num: number; earned: number }
+    >(query, values);
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    const orders: WorkoutWithInfoEntity[] = rows.map((row) => ({
+      workout: this.createWorkoutEntity(row),
+      bougthAmount: row.num ?? 0,
+      earned: row.earned ?? 0,
+    }));
+
+    return orders;
   }
 
   private createWorkoutEntity(workout: WorkoutRow) {

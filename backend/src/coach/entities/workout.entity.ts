@@ -22,7 +22,26 @@ export class WorkoutEntity implements Omit<Workout, 'coach'> {
   rating: number;
   isSpecialOffer: boolean;
 
-  constructor(workout: WorkoutEntity) {
+  constructor(workout: Omit<WorkoutEntity, 'toPojo'>) {
     Object.assign(this, workout);
+  }
+
+  toPojo() {
+    return {
+      id: this.id,
+      name: this.name,
+      backgroundUri: this.backgroundUri,
+      skill: this.skill,
+      workoutTime: this.workoutTime,
+      workoutType: this.workoutType,
+      price: this.price,
+      calories: this.calories,
+      description: this.description,
+      gender: this.gender,
+      videoUri: this.videoUri,
+      coachId: this.coachId,
+      rating: this.rating,
+      isSpecialOffer: this.isSpecialOffer,
+    };
   }
 }

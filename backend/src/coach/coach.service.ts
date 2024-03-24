@@ -10,8 +10,9 @@ import { Role } from 'src/shared/types/app.type';
 import { CreateWorkoutDto } from './dto/create-workout.dto';
 import { WorkoutEntity } from './entities/workout.entity';
 import { UpdateWorkoutDto } from './dto/update-workout.dto';
-import { QueryDto } from './dto/query.dto';
 import { DEFAULT_LIMIT, DEFAULT_PAGE } from 'src/user/user.const';
+import { WorkoutsQueryDto } from './dto/workouts-query.dto';
+import { OrdersQueryDto } from './dto/orders-query.dto';
 
 @Injectable()
 export class CoachService {
@@ -91,7 +92,7 @@ export class CoachService {
     return workout;
   }
 
-  public async getWorkouts(userId: string, query: QueryDto) {
+  public async getWorkouts(userId: string, query: WorkoutsQueryDto) {
     const user = await this.userService.getUser(userId);
 
     if (user.roleType !== Role.Coach) {
@@ -112,5 +113,28 @@ export class CoachService {
     }
 
     return workouts;
+  }
+
+  public async getOrders(userId: string, query: OrdersQueryDto) {
+    const user = await this.userService.getUser(userId);
+
+    if (!user) {
+      throw new UnauthorizedException('User has been deleted');
+    }
+
+    if (user.roleType !== Role.Coach) {
+      throw new UnauthorizedException('Invalid role');
+    }
+
+    const orders = await this.coachRepository.readOrdersWithAdditionalInfo(
+      userId,
+      query.earned || query.bougthAmound ? query : undefined,
+    );
+
+    if (orders === null) {
+      throw new InternalServerErrorException('Error while fetching orders');
+    }
+
+    return orders;
   }
 }

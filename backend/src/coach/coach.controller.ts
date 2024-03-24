@@ -18,7 +18,9 @@ import { RequestWithAccessPayload } from 'src/shared/types/token.type';
 import { WorkoutRdo } from './rdo/workout.rdo';
 import { JWTAuthGuard } from 'src/shared/guard/jwt-auth.guard';
 import { UpdateWorkoutDto } from './dto/update-workout.dto';
-import { QueryDto } from './dto/query.dto';
+import { WorkoutsQueryDto } from './dto/workouts-query.dto';
+import { OrdersQueryDto } from './dto/orders-query.dto';
+import { WorkoutOrderRdo } from './rdo/workout-order.rdo';
 
 @Controller('coach')
 export class CoachController {
@@ -84,9 +86,30 @@ export class CoachController {
   @Get('workouts')
   public async getWorkouts(
     @Req() { user }: RequestWithAccessPayload,
-    @Query() query: QueryDto,
+    @Query() query: WorkoutsQueryDto,
   ) {
     const result = await this.coachService.getWorkouts(user.userId, query);
     return fillDto(WorkoutRdo, result);
+  }
+
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'succesfully fetched orders info',
+  })
+  @ApiBadRequestResponse({})
+  @UseGuards(JWTAuthGuard)
+  @Get('orders')
+  public async getOrders(
+    @Req() { user }: RequestWithAccessPayload,
+    @Query() query: OrdersQueryDto,
+  ) {
+    const result = await this.coachService.getOrders(user.userId, query);
+    return fillDto(
+      WorkoutOrderRdo,
+      result.map((order) => ({
+        ...order,
+        workout: order.workout.toPojo(),
+      })),
+    );
   }
 }
