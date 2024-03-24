@@ -105,27 +105,7 @@ export class UserRepository {
 
     const user = rows[0];
 
-    let userRole: UserRole | undefined;
-    let coachRole: CoachRole | undefined;
-
-    if (user.user_skill) {
-      userRole = {
-        skill: user.user_skill,
-        workoutType: user.user_workout_type,
-        workoutTime: user.user_workout_time,
-        caloriesToBurn: user.user_calories_to_burn,
-        caloriesToSpend: user.user_calories_to_spend,
-        isReadyForWorkout: user.user_is_ready_for_workout,
-      };
-    } else if (user.coach_skill) {
-      coachRole = {
-        skill: user.coach_skill,
-        workoutType: user.coach_workout_type,
-        sertifikatUri: user.coach_sertifikat_uri,
-        merits: user.coach_merits,
-        isReadyToCoach: user.coach_is_ready_to_coach,
-      };
-    }
+    const role = this.fillRole(user);
 
     return new UserEntity(
       {
@@ -133,7 +113,7 @@ export class UserRepository {
         backgroundUri: user.background_uri,
         avatarUri: user.avatar_uri,
         roleType: user.role,
-        role: coachRole ?? userRole ?? undefined,
+        role: role ?? undefined,
       },
       user.password_hash,
     );
@@ -225,13 +205,15 @@ export class UserRepository {
       return null;
     }
 
+    const ur = rows[0];
+
     return new UserRoleEntity({
-      skill: rows[0].skill,
-      workoutType: rows[0].workout_type,
-      workoutTime: rows[0].workout_time,
-      caloriesToBurn: rows[0].calories_to_burn,
-      caloriesToSpend: rows[0].calories_to_spend,
-      isReadyForWorkout: rows[0].is_ready_for_workout,
+      skill: ur.skill,
+      workoutType: ur.workout_type,
+      workoutTime: ur.workout_time,
+      caloriesToBurn: ur.calories_to_burn,
+      caloriesToSpend: ur.calories_to_spend,
+      isReadyForWorkout: ur.is_ready_for_workout,
     });
   }
 
@@ -257,12 +239,13 @@ export class UserRepository {
       return null;
     }
 
+    const cr = rows[0];
+
     return new CoachRoleEntity({
-      skill: rows[0].skill,
-      workoutType: rows[0].workout_type,
-      sertifikatUri: rows[0].sertifikat_uri,
-      merits: rows[0].merits,
-      isReadyToCoach: rows[0].is_ready_to_coach,
+      ...cr,
+      workoutType: cr.workout_type,
+      sertifikatUri: cr.sertifikat_uri,
+      isReadyToCoach: cr.is_ready_to_coach,
     });
   }
 
@@ -456,37 +439,39 @@ export class UserRepository {
     }
 
     const users: UserEntity[] = rows.map((row) => {
-      let userRole: UserRole | undefined;
-      let coachRole: CoachRole | undefined;
-
-      if (row.user_skill) {
-        userRole = {
-          skill: row.user_skill,
-          workoutType: row.user_workout_type!,
-          workoutTime: row.user_workout_time!,
-          caloriesToBurn: row.user_calories_to_burn!,
-          caloriesToSpend: row.user_calories_to_spend!,
-          isReadyForWorkout: row.user_is_ready_for_workout!,
-        };
-      } else if (row.coach_skill) {
-        coachRole = {
-          skill: row.coach_skill,
-          workoutType: row.coach_workout_type!,
-          sertifikatUri: row.coach_sertifikat_uri!,
-          merits: row.coach_merits!,
-          isReadyToCoach: row.coach_is_ready_to_coach!,
-        };
-      }
+      const role = this.fillRole(row);
 
       return new UserEntity({
         ...row,
         backgroundUri: row.background_uri,
         avatarUri: row.avatar_uri,
         roleType: row.role,
-        role: coachRole ?? userRole ?? undefined,
+        role: role ?? undefined,
       });
     });
 
     return users;
+  }
+
+  private fillRole(row: UserWithRolesRow): UserRole | CoachRole | null {
+    if (row.user_skill) {
+      return {
+        skill: row.user_skill,
+        workoutType: row.user_workout_type!,
+        workoutTime: row.user_workout_time!,
+        caloriesToBurn: row.user_calories_to_burn!,
+        caloriesToSpend: row.user_calories_to_spend!,
+        isReadyForWorkout: row.user_is_ready_for_workout!,
+      };
+    } else if (row.coach_skill) {
+      return {
+        skill: row.coach_skill,
+        workoutType: row.coach_workout_type!,
+        sertifikatUri: row.coach_sertifikat_uri!,
+        merits: row.coach_merits!,
+        isReadyToCoach: row.coach_is_ready_to_coach!,
+      };
+    }
+    return null;
   }
 }
