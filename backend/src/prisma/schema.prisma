@@ -79,24 +79,25 @@ model CoachRole {
 }
 
 model Workout {
-  id               String             @unique() @default(uuid()) @map("id")
-  name             String
-  backgroundUri    String             @default("default_background.png") @map("background_uri")
-  skill            Skill
-  workoutType      WorkoutType        @map("workout_type")
-  workoutTime      WorkoutTime        @map("workout_time")
-  price            Int
-  calories         Int
-  description      String
-  gender           TargetGender       @default(for_both)
-  videoUri         String             @map("video_uri")
-  rating           Int
-  coach            CoachRole          @relation(fields: [coachId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
-  coachId          String             @map("coach_id")
-  isSpecialOffer   Boolean            @default(false) @map("is_special_offer")
-  review           Review[]
-  order            Order[]
-  purchasedWorkout PurchasedWorkout[]
+  id                     String                   @unique() @default(uuid()) @map("id")
+  name                   String
+  backgroundUri          String                   @default("default_background.png") @map("background_uri")
+  skill                  Skill
+  workoutType            WorkoutType              @map("workout_type")
+  workoutTime            WorkoutTime              @map("workout_time")
+  price                  Int
+  calories               Int
+  description            String
+  gender                 TargetGender             @default(for_both)
+  videoUri               String                   @map("video_uri")
+  rating                 Int
+  coach                  CoachRole                @relation(fields: [coachId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  coachId                String                   @map("coach_id")
+  isSpecialOffer         Boolean                  @default(false) @map("is_special_offer")
+  review                 Review[]
+  order                  Order[]
+  purchasedWorkout       PurchasedWorkout[]
+  PurchasedWorkoutByUser PurchasedWorkoutByUser[]
 
   @@map("workouts")
 }
@@ -152,20 +153,28 @@ model Notify {
 }
 
 model UserBalance {
-  id                String             @unique() @default(uuid())
-  user              UserRole           @relation(fields: [userId], references: [userId], onUpdate: Cascade, onDelete: Cascade)
-  userId            String             @unique() @map("user_id")
-  purchasedWorkouts PurchasedWorkout[]
+  id                     String                   @unique() @default(uuid())
+  user                   UserRole                 @relation(fields: [userId], references: [userId], onUpdate: Cascade, onDelete: Cascade)
+  userId                 String                   @unique() @map("user_id")
+  PurchasedWorkoutByUser PurchasedWorkoutByUser[]
 
   @@map("users_balances")
 }
 
-model PurchasedWorkout {
+model PurchasedWorkoutByUser {
   workout     Workout     @relation(fields: [workoutId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   workoutId   String      @map("workout_id")
   userBalance UserBalance @relation(fields: [balanceId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   balanceId   String      @unique() @map("balance_id")
   num         Int
+
+  @@map("purchased_workouts_by_user")
+}
+
+model PurchasedWorkout {
+  workout   Workout @relation(fields: [workoutId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  workoutId String  @unique() @map("workout_id")
+  num       Int
 
   @@map("purchased_workouts")
 }
