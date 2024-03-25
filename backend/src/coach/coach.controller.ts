@@ -10,7 +10,7 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CoachService } from './coach.service';
 import { fillDto } from 'src/shared/util/common';
 import { CreateWorkoutDto } from './dto/create-workout.dto';
@@ -22,6 +22,7 @@ import { WorkoutsQueryDto } from './dto/workouts-query.dto';
 import { OrdersQueryDto } from './dto/orders-query.dto';
 import { WorkoutOrderRdo } from './rdo/workout-order.rdo';
 
+@ApiTags('coach')
 @Controller('coach')
 export class CoachController {
   constructor(private readonly coachService: CoachService) {}

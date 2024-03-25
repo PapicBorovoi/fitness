@@ -14,6 +14,7 @@ import {
   UserWithRolesRow,
 } from 'src/shared/types/db.interface';
 import { GetUsersQuery } from './auth.type';
+import { fillRole } from 'src/shared/util/db';
 
 export class AuthRepository {
   constructor(
@@ -66,24 +67,24 @@ export class AuthRepository {
     id?: string;
   }): Promise<UserEntity | null> {
     let query = `
-  SELECT 
-    u.*, 
-    ur.skill user_skill, 
-    ur.workout_type user_workout_type, 
-    ur.workout_time user_workout_time, 
-    ur.calories_to_burn user_calories_to_burn, 
-    ur.calories_to_spend user_calories_to_spend, 
-    ur.is_ready_for_workout user_is_ready_for_workout,
-    cr.skill coach_skill,
-    cr.workout_type coach_workout_type,
-    cr.sertifikat_uri coach_sertifikat_uri,
-    cr.merits coach_merits,
-    cr.is_ready_to_coach coach_is_ready_to_coach
-  FROM 
-    users u
-    LEFT JOIN users_role ur ON u.id = ur.user_id
-    LEFT JOIN coaches_role cr ON u.id = cr.user_id
-  WHERE
+       SELECT 
+         u.*, 
+         ur.skill user_skill, 
+         ur.workout_type user_workout_type, 
+         ur.workout_time user_workout_time, 
+         ur.calories_to_burn user_calories_to_burn, 
+         ur.calories_to_spend user_calories_to_spend, 
+         ur.is_ready_for_workout user_is_ready_for_workout,
+         cr.skill coach_skill,
+         cr.workout_type coach_workout_type,
+         cr.sertifikat_uri coach_sertifikat_uri,
+         cr.merits coach_merits,
+         cr.is_ready_to_coach coach_is_ready_to_coach
+       FROM 
+         users u
+         LEFT JOIN users_role ur ON u.id = ur.user_id
+         LEFT JOIN coaches_role cr ON u.id = cr.user_id
+       WHERE
 `;
     const values = [];
 
@@ -105,7 +106,7 @@ export class AuthRepository {
 
     const user = rows[0];
 
-    const role = this.fillRole(user);
+    const role = fillRole(user);
 
     return new UserEntity(
       {
@@ -439,7 +440,7 @@ export class AuthRepository {
     }
 
     const users: UserEntity[] = rows.map((row) => {
-      const role = this.fillRole(row);
+      const role = fillRole(row);
 
       return new UserEntity({
         ...row,
@@ -451,27 +452,5 @@ export class AuthRepository {
     });
 
     return users;
-  }
-
-  private fillRole(row: UserWithRolesRow): UserRole | CoachRole | null {
-    if (row.user_skill) {
-      return {
-        skill: row.user_skill,
-        workoutType: row.user_workout_type!,
-        workoutTime: row.user_workout_time!,
-        caloriesToBurn: row.user_calories_to_burn!,
-        caloriesToSpend: row.user_calories_to_spend!,
-        isReadyForWorkout: row.user_is_ready_for_workout!,
-      };
-    } else if (row.coach_skill) {
-      return {
-        skill: row.coach_skill,
-        workoutType: row.coach_workout_type!,
-        sertifikatUri: row.coach_sertifikat_uri!,
-        merits: row.coach_merits!,
-        isReadyToCoach: row.coach_is_ready_to_coach!,
-      };
-    }
-    return null;
   }
 }
