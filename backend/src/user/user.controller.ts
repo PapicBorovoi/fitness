@@ -7,6 +7,7 @@ import {
   Post,
   Param,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiResponse } from '@nestjs/swagger';
 import { JWTAuthGuard } from 'src/shared/guard/jwt-auth.guard';
@@ -46,6 +47,21 @@ export class UserController {
     @Param('id') id: string,
   ) {
     const result = await this.userService.addFriend(user.userId, id);
+    return fillDto(UserRdo, result);
+  }
+
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'succesfully deleted friend',
+  })
+  @ApiBadRequestResponse({})
+  @UseGuards(JWTAuthGuard)
+  @Delete('friend/:id')
+  public async deleteFriend(
+    @Req() { user }: RequestWithAccessPayload,
+    @Param('id') id: string,
+  ) {
+    const result = await this.userService.deleteFriend(user.userId, id);
     return fillDto(UserRdo, result);
   }
 }

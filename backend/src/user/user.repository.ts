@@ -70,4 +70,22 @@ export class UserRepository {
 
     return rows[0];
   }
+
+  public async deleteFriend(userId: string, friendId: string) {
+    const query = `
+      DELETE FROM friends
+      WHERE owner_id = $1 AND friend_id = $2
+      RETURNING *
+    `;
+
+    const values = [userId, friendId];
+
+    const { rows } = await this.pool.query(query, values);
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return rows[0];
+  }
 }

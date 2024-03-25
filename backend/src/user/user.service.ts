@@ -39,6 +39,10 @@ export class UserService {
       throw new UnauthorizedException('User has been deleted');
     }
 
+    if (userId === friendId) {
+      throw new BadRequestException('User can not add himself');
+    }
+
     if (user.roleType !== Role.User) {
       throw new UnauthorizedException('Only user can add friend');
     }
@@ -47,6 +51,38 @@ export class UserService {
 
     if (!newFriend) {
       throw new InternalServerErrorException('Error while creating friend');
+    }
+
+    return friend;
+  }
+
+  public async deleteFriend(userId: string, friendId: string) {
+    const user = await this.authService.getUser(userId);
+    const friend = await this.authService.getUser(friendId);
+
+    if (!friend) {
+      throw new BadRequestException('No sush user');
+    }
+
+    if (!user) {
+      throw new UnauthorizedException('User has been deleted');
+    }
+
+    if (userId === friendId) {
+      throw new BadRequestException('User can not delete himself');
+    }
+
+    if (user.roleType !== Role.User) {
+      throw new UnauthorizedException('Only user can delete friend');
+    }
+
+    const deletedFriend = await this.userRepository.deleteFriend(
+      userId,
+      friendId,
+    );
+
+    if (!deletedFriend) {
+      throw new InternalServerErrorException('Error while deleting friend');
     }
 
     return friend;
