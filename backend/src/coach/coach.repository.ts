@@ -6,6 +6,7 @@ import { WorkoutRow } from 'src/shared/types/db.interface';
 import { WorkoutsQueryDto } from './dto/workouts-query.dto';
 import { OrdersQueryDto } from './dto/orders-query.dto';
 import { WorkoutWithInfoEntity } from './entities/workout-with-info.entity';
+import { createWorkoutEntity } from 'src/shared/util/db';
 
 @Injectable()
 export class CoachRepository {
@@ -49,7 +50,7 @@ export class CoachRepository {
 
     const nw: WorkoutRow = rows[0];
 
-    return this.createWorkoutEntity(nw);
+    return createWorkoutEntity(nw);
   }
 
   public async readWorkout(id: string): Promise<WorkoutEntity | null> {
@@ -67,7 +68,7 @@ export class CoachRepository {
 
     const workout: WorkoutRow = rows[0];
 
-    return this.createWorkoutEntity(workout);
+    return createWorkoutEntity(workout);
   }
 
   public async updateWorkout(uw: WorkoutEntity): Promise<WorkoutEntity | null> {
@@ -103,7 +104,7 @@ export class CoachRepository {
 
     const workout: WorkoutRow = rows[0];
 
-    return this.createWorkoutEntity(workout);
+    return createWorkoutEntity(workout);
   }
 
   public async readWorkouts(
@@ -192,7 +193,7 @@ export class CoachRepository {
     }
 
     const workouts: WorkoutEntity[] = rows.map((row) =>
-      this.createWorkoutEntity(row),
+      createWorkoutEntity(row),
     );
 
     return workouts;
@@ -244,23 +245,11 @@ export class CoachRepository {
     }
 
     const orders: WorkoutWithInfoEntity[] = rows.map((row) => ({
-      workout: this.createWorkoutEntity(row),
+      workout: createWorkoutEntity(row),
       bougthAmount: row.num ?? 0,
       earned: row.earned ?? 0,
     }));
 
     return orders;
-  }
-
-  private createWorkoutEntity(workout: WorkoutRow) {
-    return new WorkoutEntity({
-      ...workout,
-      videoUri: workout.video_uri,
-      workoutTime: workout.workout_time,
-      workoutType: workout.workout_type,
-      backgroundUri: workout.background_uri,
-      isSpecialOffer: workout.is_special_offer,
-      coachId: workout.coach_id,
-    });
   }
 }

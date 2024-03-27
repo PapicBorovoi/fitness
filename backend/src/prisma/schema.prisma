@@ -36,6 +36,8 @@ model User {
   refreshToken           RefreshToken?
   friendsOwned           Friends[]         @relation("FriendOwner")
   friendsAdded           Friends[]         @relation("Friend")
+  UserBalance            UserBalance?
+  Workout                Workout[]
 
   @@map("users")
 }
@@ -52,15 +54,14 @@ model Friends {
 }
 
 model UserRole {
-  user              User         @relation("UserRole", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId            String       @id() @unique() @map("user_id")
-  skill             Skill        @default(newbie)
-  workoutType       WorkoutType  @map("workout_type")
-  workoutTime       WorkoutTime  @map("workout_time")
-  caloriesToBurn    Int          @map("calories_to_burn")
-  caloriesToSpend   Int          @map("calories_to_spend")
-  isReadyForWorkout Boolean      @default(false) @map("is_ready_for_workout")
-  userBalance       UserBalance?
+  user              User        @relation("UserRole", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId            String      @id() @unique() @map("user_id")
+  skill             Skill       @default(newbie)
+  workoutType       WorkoutType @map("workout_type")
+  workoutTime       WorkoutTime @map("workout_time")
+  caloriesToBurn    Int         @map("calories_to_burn")
+  caloriesToSpend   Int         @map("calories_to_spend")
+  isReadyForWorkout Boolean     @default(false) @map("is_ready_for_workout")
 
   @@map("users_role")
 }
@@ -91,13 +92,15 @@ model Workout {
   gender                 TargetGender             @default(for_both)
   videoUri               String                   @map("video_uri")
   rating                 Int
-  coach                  CoachRole                @relation(fields: [coachId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  coach                  User                     @relation(fields: [coachId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   coachId                String                   @map("coach_id")
   isSpecialOffer         Boolean                  @default(false) @map("is_special_offer")
   review                 Review[]
   order                  Order[]
   purchasedWorkout       PurchasedWorkout[]
   PurchasedWorkoutByUser PurchasedWorkoutByUser[]
+  CoachRole              CoachRole?               @relation(fields: [coachRoleUserId], references: [userId])
+  coachRoleUserId        String?
 
   @@map("workouts")
 }
@@ -154,7 +157,7 @@ model Notify {
 
 model UserBalance {
   id                     String                   @unique() @default(uuid())
-  user                   UserRole                 @relation(fields: [userId], references: [userId], onUpdate: Cascade, onDelete: Cascade)
+  user                   User                     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userId                 String                   @unique() @map("user_id")
   PurchasedWorkoutByUser PurchasedWorkoutByUser[]
 
@@ -162,10 +165,11 @@ model UserBalance {
 }
 
 model PurchasedWorkoutByUser {
+  id          String      @unique() @default(uuid()) @map("id")
   workout     Workout     @relation(fields: [workoutId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   workoutId   String      @map("workout_id")
   userBalance UserBalance @relation(fields: [balanceId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  balanceId   String      @unique() @map("balance_id")
+  balanceId   String      @map("balance_id")
   num         Int
 
   @@map("purchased_workouts_by_user")

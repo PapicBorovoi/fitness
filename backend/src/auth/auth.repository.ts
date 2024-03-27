@@ -53,6 +53,15 @@ export class AuthRepository {
       ],
     );
 
+    const balanceId = crypto.randomUUID();
+
+    if (user.role === Role.User) {
+      await this.pool.query(
+        'INSERT INTO users_balances (id, user_id) VALUES ($1, $2)',
+        [balanceId, user.id],
+      );
+    }
+
     return new UserEntity({
       ...user,
       avatarUri: user.avatar_uri,

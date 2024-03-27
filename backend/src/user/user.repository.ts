@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Pool } from 'pg';
 import { UserEntity } from 'src/auth/entities/user.entity';
-import { UserWithRolesRow } from 'src/shared/types/db.interface';
-import { fillRole } from 'src/shared/util/db';
+import { UserWithRolesRow, WorkoutRow } from 'src/shared/types/db.interface';
+import { createWorkoutEntity, fillRole } from 'src/shared/util/db';
 import { randomUUID } from 'node:crypto';
+import { BalanceEntity } from './entities/balance.entity';
 
 @Injectable()
 export class UserRepository {
@@ -79,6 +80,110 @@ export class UserRepository {
     `;
 
     const values = [userId, friendId];
+
+    const { rows } = await this.pool.query(query, values);
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return rows[0];
+  }
+
+  public async readBalance(userId: string) {
+    const query = `
+      SELECT
+        ub.id balance_id,
+        w.*,
+        pw.num num
+      FROM
+        users_balances ub
+        LEFT JOIN purchased_workouts_by_user pw ON pw.balance_id = ub.id
+        LEFT JOIN workouts w ON w.id = pw.workout_id
+      WHERE ub.user_id = $1 
+    `;
+
+    const values = [userId];
+
+    const { rows } = await this.pool.query<
+      WorkoutRow & { num: number; balance_id: string }
+    >(query, values);
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    const workoutsWithNum = rows.map((row) => ({
+      workout: createWorkoutEntity(row),
+      num: row.num,
+    }));
+
+    const result = new BalanceEntity({
+      id: rows[0].balance_id,
+      workouts:
+        workoutsWithNum.length === 1 && workoutsWithNum[0].num === null
+          ? []
+          : workoutsWithNum,
+    });
+
+    return result;
+  }
+
+  public async updateBalance(
+    balanceId: string,
+    workoutId: string,
+    num: number,
+  ) {
+    const query = `
+      UPDATE purchased_workouts_by_user
+      SET num = num + $3
+      WHERE balance_id = $1 AND workout_id = $2
+      RETURNING *
+    `;
+
+    const values = [balanceId, workoutId, num.toString()];
+
+    const { rows } = await this.pool.query(query, values);
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return rows[0];
+  }
+
+  public async addWorkoutToBalance(
+    balance_id: string,
+    workoutId: string,
+    num: number,
+  ) {
+    const query = `
+      INSERT INTO purchased_workouts_by_user(id, balance_id, workout_id, num)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `;
+
+    const id = randomUUID();
+
+    const values = [id, balance_id, workoutId, num.toString()];
+
+    const { rows } = await this.pool.query(query, values);
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return rows[0];
+  }
+
+  public async deleteWorkoutFromBalance(balanceId: string, workoutId: string) {
+    const query = `
+      DELETE FROM purchased_workouts_by_user
+      WHERE balance_id = $1 AND workout_id = $2
+      RETURNING *
+    `;
+
+    const values = [balanceId, workoutId];
 
     const { rows } = await this.pool.query(query, values);
 

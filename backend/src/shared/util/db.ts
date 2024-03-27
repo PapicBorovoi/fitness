@@ -1,5 +1,7 @@
 import { UserWithRolesRow } from '../types/db.interface';
 import { UserRole, CoachRole } from '../types/app.type';
+import { WorkoutRow } from '../types/db.interface';
+import { WorkoutEntity } from 'src/coach/entities/workout.entity';
 
 export const fillRole = (
   row: UserWithRolesRow,
@@ -23,4 +25,16 @@ export const fillRole = (
     };
   }
   return null;
+};
+
+export const createWorkoutEntity = (workout: WorkoutRow) => {
+  return new WorkoutEntity({
+    ...workout,
+    videoUri: workout.video_uri,
+    workoutTime: workout.workout_time,
+    workoutType: workout.workout_type,
+    backgroundUri: workout.background_uri,
+    isSpecialOffer: workout.is_special_offer,
+    coachId: workout.coach_id,
+  });
 };
